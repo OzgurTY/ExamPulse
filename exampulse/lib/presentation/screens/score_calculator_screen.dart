@@ -1,5 +1,7 @@
+import 'package:exampulse/core/models/exam_result.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:uuid/uuid.dart';
 import '../../core/constants/app_colors.dart';
 import '../widgets/score_input_card.dart';
 import '../../core/services/storage_service.dart';
@@ -45,7 +47,21 @@ class _ScoreCalculatorScreenState extends State<ScoreCalculatorScreen> {
       // Taban puan 100 + (Net * Ortalama 3.3 puan)
       totalScore = 100 + (totalNet * 3.3); 
 
-      StorageService().saveResult(totalScore, totalNet);
+      final result = ExamResult(
+      id: const Uuid().v4(), // Benzersiz ID
+      date: DateTime.now(),
+      examType: "TYT",
+      score: totalScore,
+      totalNet: totalNet,
+      lessonNets: {
+        "Türkçe": netTurkce,
+        "Matematik": netMat,
+        "Sosyal": netSosyal,
+        "Fen": netFen,
+      },
+    );
+    
+      StorageService().saveResult(result);
       ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text("Sonuç geçmişe kaydedildi! 📝"),

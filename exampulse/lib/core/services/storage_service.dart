@@ -1,34 +1,69 @@
+import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../models/exam_result.dart'; // Modelimizi import ettik
 
 class StorageService {
-  static const String _historyKey = 'exam_history';
+  static const String _historyKey = 'exam_history_v2'; // Key'i değiştirdik (Eski verilerle karışmasın)
 
-  // Sonuç Kaydetme
-  Future<void> saveResult(double score, double net) async {
+  // KAYDETME
+  Future<void> saveResult(ExamResult result) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     
-    // Mevcut listeyi al (yoksa boş liste oluştur)
-    List<String> history = prefs.getStringList(_historyKey) ?? [];
-
-    // Yeni sonucu string olarak hazırla: "Tarih#Puan#Net"
-    String newRecord = "${DateTime.now().toString()}#$score#$net";
+    // Mevcut listeyi çek
+    List<String> rawList = prefs.getStringList(_historyKey) ?? [];
     
-    // Listeye ekle ve kaydet
-    history.add(newRecord);
-    await prefs.setStringList(_historyKey, history);
+    // Yeni sonucu JSON string'e çevirip ekle
+    rawList.add(jsonEncode(result.toJson()));
+    
+    // Kaydet
+    await prefs.setStringList(_historyKey, rawList);
   }
 
-  // Geçmişi Getirme
-  Future<List<String>> getHistory() async {
+  // LİSTELEME
+  Future<List<ExamResult>> getHistory() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    // Listeyi ters çevir (en yeniden en eskiye)
-    List<String> history = prefs.getStringList(_historyKey) ?? [];
-    return history.reversed.toList();
+    List<String> rawList = prefs.getStringList(_historyKey) ?? [];
+    
+    // String listesini ExamResult listesine dönüştür
+    List<ExamResult> results = rawList.map((item) {
+      return ExamResult.fromJson(jsonDecode(item));
+    }).toList();
+
+    // En yeniden en eskiye sırala
+    return results.reversed.toList();
   }
-  
-  // Geçmişi Temizleme (Opsiyonel)
+
+  // SİLME (Artık ID ile nokta atışı silebiliriz!)
+  Future<void> deleteResult(String id) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String> rawList = prefs.getStringList(_historyKey) ?? [];
+    
+    // ID'si eşleşen kaydı bul ve sil
+    rawList.removeWhere((item) {
+      final json = jsonDecode(item);
+      return json['id'] == id;
+    });
+
+    await prefs.setStringList(_historyKey, rawList);
+  }
+
+  // TEMİZLEME
   Future<void> clearHistory() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.remove(_historyKey);
+  }
+
+  static const String _keyCompletedTopics = 'completed_topics';
+
+  // Tamamlanan Konuların İsimlerini Kaydet
+  Future<void> saveCompletedTopics(List<String> topicNames) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList(_keyCompletedTopics, topicNames);
+  }
+
+  // Tamamlanan Konuları Getir
+  Future<List<String>> getCompletedTopics() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getStringList(_keyCompletedTopics) ?? [];
   }
 }

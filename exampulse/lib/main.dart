@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'presentation/screens/home_screen.dart';
+import 'package:flutter_localizations/flutter_localizations.dart'; // <-- BU EKLENDİ
+import 'presentation/screens/main_wrapper.dart';
 
 void main() {
   runApp(const ExamPulseApp());
@@ -15,11 +15,22 @@ class ExamPulseApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'ExamPulse',
       theme: ThemeData(
+        primarySwatch: Colors.indigo,
         useMaterial3: true,
-        // Tüm uygulamaya Google Font uyguluyoruz
-        textTheme: GoogleFonts.poppinsTextTheme(),
       ),
-      home: const HomeScreen(),
+      // --- YENİ EKLENEN KISIM BAŞLANGICI ---
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('tr', 'TR'), // Sadece Türkçe destekle
+      ],
+      locale: const Locale('tr', 'TR'), // Varsayılanı Türkçe yap
+      // --- YENİ EKLENEN KISIM BİTİŞİ ---
+      
+      home: const MainWrapper(),
     );
   }
 }

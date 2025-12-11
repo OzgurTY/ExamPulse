@@ -1,18 +1,49 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../core/constants/app_colors.dart';
-import 'score_calculator_screen.dart'; // EKLENDİ: Sayfayı tanıttık
-import 'history_screen.dart';
+import '../../core/services/preferences_service.dart';
+import 'settings_screen.dart'; // Ayarlar sayfasını import et
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    // ... (Tarih ve sayaç kodları aynı kalacak) ...
-    final DateTime examDate = DateTime(2026, 6, 20);
-    final DateTime today = DateTime.now();
-    final int daysLeft = examDate.difference(today).inDays;
+  State<HomeScreen> createState() => _HomeScreenState();
+}
 
+class _HomeScreenState extends State<HomeScreen> {
+  String userName = "Öğrenci";
+  int daysLeft = 0;
+  // Varsayılan hedef (Eğer kullanıcı seçmezse)
+  DateTime targetDate = DateTime(2026, 6, 20); 
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  // Verileri çekme fonksiyonu
+  Future<void> _loadUserData() async {
+    final prefs = PreferencesService();
+    final name = await prefs.getUserName();
+    final date = await prefs.getExamDate();
+
+    setState(() {
+      if (name != null && name.isNotEmpty) userName = name;
+      if (date != null) targetDate = date;
+      
+      // Gün Farkını Hesapla
+      final today = DateTime.now();
+      // Saat farkını yoksaymak için sadece tarih kısımlarını alabiliriz ama şimdilik direkt fark alalım
+      daysLeft = targetDate.difference(today).inDays;
+      // Eğer negatifse (sınav geçtiyse) 0 göster
+      if (daysLeft < 0) daysLeft = 0;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -21,23 +52,45 @@ class HomeScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ... (Başlık ve üst kısım kodları aynı) ...
-              const Text(
-                "Hello, Student! 👋",
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
-                ),
+              // ÜST KISIM (Header + Ayarlar İkonu)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text("Merhaba, $userName! 👋", style: GoogleFonts.poppins(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                      const SizedBox(height: 4),
+                      Text("Bugün hedeflerine odaklan.", style: GoogleFonts.poppins(color: AppColors.textSecondary, fontSize: 14)),
+                    ],
+                  ),
+                  // AYARLAR BUTONU
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10)],
+                    ),
+                    child: IconButton(
+                      icon: const Icon(Icons.settings, color: AppColors.primary),
+                      onPressed: () async {
+                        // Ayarlara git ve dönünce verileri yenile
+                        bool? result = await Navigator.push(
+                          context, 
+                          MaterialPageRoute(builder: (context) => const SettingsScreen())
+                        );
+                        if (result == true) {
+                          _loadUserData(); // Ekranı yenile
+                        }
+                      },
+                    ),
+                  )
+                ],
               ),
-              const SizedBox(height: 8),
-              const Text(
-                "Let's check your progress.",
-                style: TextStyle(color: AppColors.textSecondary, fontSize: 16),
-              ),
+              
               const SizedBox(height: 32),
               
-              // ... (Sayaç Kartı aynı) ...
+              // GERİ SAYIM KARTI
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(24),
@@ -49,26 +102,22 @@ class HomeScreen extends StatelessWidget {
                   ),
                   borderRadius: BorderRadius.circular(24),
                   boxShadow: [
-                    BoxShadow(
-                      color: AppColors.primary.withOpacity(0.3),
-                      blurRadius: 20,
-                      offset: const Offset(0, 10),
-                    ),
+                    BoxShadow(color: AppColors.primary.withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 10)),
                   ],
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text("YKS 2025 (TYT)", style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w600)),
+                    Text("Büyük Sınava", style: GoogleFonts.poppins(color: Colors.white70, fontWeight: FontWeight.w600)),
                     const SizedBox(height: 12),
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        Text("$daysLeft", style: const TextStyle(fontSize: 48, fontWeight: FontWeight.bold, height: 1, color: Colors.white)),
+                        Text("$daysLeft", style: GoogleFonts.poppins(fontSize: 48, fontWeight: FontWeight.bold, height: 1, color: Colors.white)),
                         const SizedBox(width: 8),
                         Padding(
                           padding: const EdgeInsets.only(bottom: 8.0),
-                          child: Text("Days Left", style: TextStyle(fontSize: 18, color: Colors.white.withOpacity(0.9))),
+                          child: Text("Gün Kaldı", style: GoogleFonts.poppins(fontSize: 18, color: Colors.white.withOpacity(0.9))),
                         ),
                       ],
                     ),
@@ -77,75 +126,39 @@ class HomeScreen extends StatelessWidget {
               ),
 
               const SizedBox(height: 32),
-
-              // 4. ALT MENÜ - GÜNCELLENDİ
-              Expanded(
-                child: GridView.count(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 16,
-                  mainAxisSpacing: 16,
+              
+              // İSTATİSTİK ÖZETİ (Sabit Placeholder)
+              Text("Günün Özeti", style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: Colors.grey.shade200),
+                ),
+                child: Row(
                   children: [
-                    _buildMenuCard(
-                      context, // Context'i buraya gönderiyoruz
-                      icon: Icons.calculate_outlined,
-                      title: "Score\nCalculator",
-                      color: AppColors.primary,
-                      onTap: () {
-                        // DÜZELTME: Navigasyon eklendi
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const ScoreCalculatorScreen()),
-                        );
-                      },
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(color: Colors.green.shade50, shape: BoxShape.circle),
+                      child: const Icon(Icons.trending_up, color: Colors.green, size: 28),
                     ),
-                    _buildMenuCard(
-                      context,
-                      icon: Icons.history,
-                      title: "My\nHistory",
-                      color: AppColors.surface,
-                      onTap: () {
-                         Navigator.push(context, MaterialPageRoute(builder: (context) => const HistoryScreen()));
-                      },
-                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text("İstikrarlı Gidiyorsun!", style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 16)),
+                          Text("Düzenli deneme çözmek başarıyı getirir.", style: GoogleFonts.poppins(color: Colors.grey, fontSize: 14)),
+                        ],
+                      ),
+                    )
                   ],
                 ),
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-
-  // Helper Widget'ı Context alacak şekilde güncelledik
-  Widget _buildMenuCard(
-    BuildContext context, {
-    required IconData icon,
-    required String title,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: color == AppColors.primary ? color : AppColors.surface,
-          borderRadius: BorderRadius.circular(24),
-          border: color == AppColors.surface 
-              ? Border.all(color: Colors.white10) 
-              : null,
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 40, color: Colors.white),
-            const SizedBox(height: 12),
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white),
-            ),
-          ],
         ),
       ),
     );
