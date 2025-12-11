@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/constants/app_colors.dart';
 import '../widgets/score_input_card.dart';
+import '../../core/services/storage_service.dart';
 
 class ScoreCalculatorScreen extends StatefulWidget {
   const ScoreCalculatorScreen({super.key});
@@ -25,6 +26,7 @@ class _ScoreCalculatorScreenState extends State<ScoreCalculatorScreen> {
   double totalNet = 0.0;
 
   void calculateScore() {
+    FocusScope.of(context).unfocus();
     // Yardımcı net hesaplama fonksiyonu
     double calcNet(TextEditingController correct, TextEditingController wrong) {
       double d = double.tryParse(correct.text) ?? 0;
@@ -42,6 +44,15 @@ class _ScoreCalculatorScreenState extends State<ScoreCalculatorScreen> {
       totalNet = netTurkce + netMat + netSosyal + netFen;
       // Taban puan 100 + (Net * Ortalama 3.3 puan)
       totalScore = 100 + (totalNet * 3.3); 
+
+      StorageService().saveResult(totalScore, totalNet);
+      ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text("Sonuç geçmişe kaydedildi! 📝"),
+        backgroundColor: Colors.green,
+        duration: Duration(seconds: 1),
+      ),
+    );
     });
   }
 

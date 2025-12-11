@@ -1,18 +1,16 @@
 import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
+import 'score_calculator_screen.dart'; // EKLENDİ: Sayfayı tanıttık
+import 'history_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // 1. SINAV TARİHİ AYARI (Burayı değiştirebilirsin)
-    // Yıl: 2025, Ay: 6 (Haziran), Gün: 21 (Tahmini TYT)
+    // ... (Tarih ve sayaç kodları aynı kalacak) ...
     final DateTime examDate = DateTime(2026, 6, 20);
-    
-    // 2. HESAPLAMA MOTORU
     final DateTime today = DateTime.now();
-    // Farkı alıp gün cinsine çeviriyoruz
     final int daysLeft = examDate.difference(today).inDays;
 
     return Scaffold(
@@ -23,6 +21,7 @@ class HomeScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // ... (Başlık ve üst kısım kodları aynı) ...
               const Text(
                 "Hello, Student! 👋",
                 style: TextStyle(
@@ -34,14 +33,11 @@ class HomeScreen extends StatelessWidget {
               const SizedBox(height: 8),
               const Text(
                 "Let's check your progress.",
-                style: TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 16,
-                ),
+                style: TextStyle(color: AppColors.textSecondary, fontSize: 16),
               ),
               const SizedBox(height: 32),
               
-              // 3. DİNAMİK KART
+              // ... (Sayaç Kartı aynı) ...
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(24),
@@ -63,36 +59,16 @@ class HomeScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      "YKS 2025 (TYT)",
-                      style: TextStyle(
-                        color: Colors.white70,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
+                    const Text("YKS 2025 (TYT)", style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w600)),
                     const SizedBox(height: 12),
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        Text(
-                          "$daysLeft", // BURASI ARTIK OTOMATİK!
-                          style: const TextStyle(
-                            fontSize: 48,
-                            fontWeight: FontWeight.bold,
-                            height: 1,
-                            color: Colors.white,
-                          ),
-                        ),
+                        Text("$daysLeft", style: const TextStyle(fontSize: 48, fontWeight: FontWeight.bold, height: 1, color: Colors.white)),
                         const SizedBox(width: 8),
                         Padding(
                           padding: const EdgeInsets.only(bottom: 8.0),
-                          child: Text(
-                            "Days Left",
-                            style: TextStyle(
-                              fontSize: 18,
-                              color: Colors.white.withOpacity(0.9),
-                            ),
-                          ),
+                          child: Text("Days Left", style: TextStyle(fontSize: 18, color: Colors.white.withOpacity(0.9))),
                         ),
                       ],
                     ),
@@ -102,7 +78,7 @@ class HomeScreen extends StatelessWidget {
 
               const SizedBox(height: 32),
 
-              // 4. ALT MENÜ (Hesap Makinesi Butonları)
+              // 4. ALT MENÜ - GÜNCELLENDİ
               Expanded(
                 child: GridView.count(
                   crossAxisCount: 2,
@@ -110,20 +86,25 @@ class HomeScreen extends StatelessWidget {
                   mainAxisSpacing: 16,
                   children: [
                     _buildMenuCard(
+                      context, // Context'i buraya gönderiyoruz
                       icon: Icons.calculate_outlined,
                       title: "Score\nCalculator",
                       color: AppColors.primary,
                       onTap: () {
-                        // Tıklanınca ne olacak? (Birazdan yapacağız)
-                        print("Hesaplayıcıya tıklandı");
+                        // DÜZELTME: Navigasyon eklendi
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const ScoreCalculatorScreen()),
+                        );
                       },
                     ),
                     _buildMenuCard(
+                      context,
                       icon: Icons.history,
                       title: "My\nHistory",
                       color: AppColors.surface,
                       onTap: () {
-                         print("Geçmişe tıklandı");
+                         Navigator.push(context, MaterialPageRoute(builder: (context) => const HistoryScreen()));
                       },
                     ),
                   ],
@@ -136,7 +117,9 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildMenuCard({
+  // Helper Widget'ı Context alacak şekilde güncelledik
+  Widget _buildMenuCard(
+    BuildContext context, {
     required IconData icon,
     required String title,
     required Color color,
@@ -155,20 +138,12 @@ class HomeScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              icon, 
-              size: 40, 
-              color: Colors.white,
-            ),
+            Icon(icon, size: 40, color: Colors.white),
             const SizedBox(height: 12),
             Text(
               title,
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Colors.white,
-              ),
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white),
             ),
           ],
         ),
