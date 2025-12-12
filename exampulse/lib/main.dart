@@ -1,6 +1,8 @@
+import 'package:exampulse/presentation/screens/main_wrapper.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart'; // <-- BU EKLENDİ
-import 'presentation/screens/main_wrapper.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'presentation/screens/home_screen.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 void main() {
   runApp(const ExamPulseApp());
