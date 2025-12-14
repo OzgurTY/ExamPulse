@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/services/preferences_service.dart';
 import 'settings_screen.dart'; // Ayarlar sayfasını import et
+import '../../core/constants/daily_info_data.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -21,7 +22,8 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _loadUserData();
-  }
+    _dailyInfo = DailyInfoData.getRandomInfo(); // Rastgele bilgi seç
+}
 
   // Verileri çekme fonksiyonu
   Future<void> _loadUserData() async {
@@ -157,10 +159,84 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
               ),
+
+              // --- GÜNÜN BİLGİSİ KARTI (YENİ) ---
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text("Günün Bilgisi", style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                  // Yenileme Butonu (İsteğe bağlı)
+                  IconButton(
+                    icon: const Icon(Icons.refresh, color: Colors.grey, size: 20),
+                    onPressed: () {
+                      setState(() {
+                        _dailyInfo = DailyInfoData.getRandomInfo();
+                      });
+                    },
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: Colors.grey.shade200),
+                  boxShadow: [
+                    BoxShadow(color: _dailyInfo.color.withOpacity(0.1), blurRadius: 15, offset: const Offset(0, 5)),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Kategori Başlığı
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: _dailyInfo.color.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Icon(_dailyInfo.icon, color: _dailyInfo.color, size: 20),
+                        ),
+                        const SizedBox(width: 12),
+                        Text(
+                          _dailyInfo.category,
+                          style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.bold,
+                            color: _dailyInfo.color,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    // Bilgi İçeriği
+                    Text(
+                      _dailyInfo.content,
+                      style: GoogleFonts.poppins(
+                        fontSize: 15,
+                        color: const Color(0xFF2D3142),
+                        height: 1.5, // Satır aralığı
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // Sayfa altı boşluğu
+              const SizedBox(height: 20),
             ],
           ),
         ),
       ),
     );
   }
+
+  late InfoItem _dailyInfo;
+
+  
 }
